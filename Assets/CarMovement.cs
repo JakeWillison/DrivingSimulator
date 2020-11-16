@@ -2,29 +2,58 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class CarMovement : MonoBehaviour
 {
-    Rigidbody m_Rigidbody;
-    float m_Speed;
 
-    void Start()
-    {
-        //Fetch the Rigidbody component you attach from your GameObject
-        m_Rigidbody = GetComponent<Rigidbody>();
-        //Set the speed of the GameObject
-        m_Speed = 15.0f;
-    }
+    public float MotorForce, SteerForce, BreakForce, friction;
+    public WheelCollider wheelfrontleft, wheelfrontrightSphere, wheelbackleft, wheelbackright;
+    public GameObject car;
 
-    // Update is called once per frame
+
     void Update()
     {
-        if (Input.GetKey(KeyCode.W))
-            m_Rigidbody.velocity = -transform.up * m_Speed;
-        if (Input.GetKey(KeyCode.S))
-            m_Rigidbody.velocity = transform.up * m_Speed;
-        if (Input.GetKey(KeyCode.D))
-            transform.Rotate(0f, 0f, 1.5f);
-        if (Input.GetKey(KeyCode.A))
-            transform.Rotate(0f, 0f, -1.5f);
+
+        float v = Input.GetAxis("Vertical") * MotorForce;
+
+
+        wheelbackleft.motorTorque = v;
+        wheelbackright.motorTorque = v;
+
+        car.transform.Rotate(Vector3.up * SteerForce * Time.deltaTime * Input.GetAxis("Horizontal"), Space.World);
+
+
+
+        if (Input.GetKey(KeyCode.Space))
+        {
+            wheelbackleft.brakeTorque = BreakForce;
+            wheelbackright.brakeTorque = BreakForce;
+        }
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            wheelbackleft.brakeTorque = 0;
+            wheelbackright.brakeTorque = 0;
+        }
+        if (Input.GetAxis("Vertical") == 0)
+        {
+            if (wheelbackleft.brakeTorque <= BreakForce && wheelbackright.brakeTorque <= BreakForce)
+            {
+                wheelbackleft.brakeTorque += friction * Time.deltaTime * BreakForce;
+                wheelbackright.brakeTorque += friction * Time.deltaTime * BreakForce;
+            }
+            else
+            {
+                wheelbackleft.brakeTorque = BreakForce;
+                wheelbackright.brakeTorque = BreakForce;
+            }
+        }
+        else
+        {
+            wheelbackleft.brakeTorque = 0;
+            wheelbackright.brakeTorque = 0;
+        }
+
+
     }
 }
+
